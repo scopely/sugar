@@ -45,7 +45,7 @@ if (process.env.AWS_ACCESS_KEY_ID && !profile) {
     }
 
     if (!creds) {
-      console.error('Profile', profile, "couldn't be found in", path);
+      console.error('Profile', profile || 'default', "couldn't be found in", path);
       process.exit(4);
     }
     aws.config.update({
