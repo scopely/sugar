@@ -3,10 +3,7 @@
 // argv parsing
 var queries = (process.argv[2] || '').split('@');
 var filter = queries[0].toLowerCase();
-
-if (queries[1] && queries[1].length) {
-  process.env.AWS_PROFILE = queries[1];
-}
+var profile = queries[1];
 
 // help
 if (!filter.length) {
@@ -22,20 +19,40 @@ if (!filter.length) {
   process.exit(1);
 }
 
-// set up AWS
+// resolve credentials and region
 var fs = require('fs');
-var aws = require('aws-sdk');
 var ini = require('ini');
+var aws = require('aws-sdk');
 
-var config = ini.parse(fs.readFileSync(aws.config.credentials.filename, 'utf-8'));
-var region = config[aws.config.credentials.profile].region;
+aws.config.update({region: process.env.AWS_REGION});
 
-if (!region) {
-  region = 'us-east-1';
-  console.warn('AWS job: Assuming', region, 'region');
+if (process.env.AWS_ACCESS_KEY_ID) {
+  if (!process.env.AWS_REGION) {
+    aws.config.update({region: 'us-east-1'});
+    console.warn('AWS_REGION not present, assuming', aws.config.region);
+  }
+
+} else {
+  var path = process.env.HOME + '/.aws/config';
+
+  if (fs.existsSync(path)) {
+    var config = ini.parse(fs.readFileSync(path, 'utf-8'));
+    var creds = config[profile || 'default'];
+
+    if (!creds) {
+      console.error('Profile', profile, "couldn't be found in", path);
+      process.exit(4);
+    }
+    aws.config.update({
+      region: creds.region,
+      accessKeyId: creds.aws_access_key_id,
+      secretAccessKey: creds.aws_secret_access_key,
+    });
+
+  } else {
+    console.warn('WARN: No AWS keys in environment and', path, "doesn't exist");
+  }
 }
-aws.config.update({region: region});
-var ec2 = new aws.EC2();
 
 // fetch running instances
 var opts = {
@@ -43,6 +60,8 @@ var opts = {
     { Name: 'instance-state-name', Values: ['running'] },
   ],
 };
+
+var ec2 = new aws.EC2();
 ec2.describeInstances(opts, function (err, data) {
   if (err) {
     console.error('Error fetching instance list from ec2');
