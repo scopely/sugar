@@ -26,7 +26,7 @@ var aws = require('aws-sdk');
 
 aws.config.update({region: process.env.AWS_REGION});
 
-if (process.env.AWS_ACCESS_KEY_ID) {
+if (process.env.AWS_ACCESS_KEY_ID && !profile) {
   if (!process.env.AWS_REGION) {
     aws.config.update({region: 'us-east-1'});
     console.warn('AWS_REGION not present, assuming', aws.config.region);
