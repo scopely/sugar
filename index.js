@@ -144,7 +144,7 @@ ec2.describeInstances(opts, function (err, data) {
 
   // hand off to SSH
   var dns = instance.PublicDnsName;
-  var user = 'ubuntu'; // TODO
+  var user = process.env.USER || 'ubuntu'; // TODO
 
   // TODO: "killed: 9". is kexec even needed?
   //var kexec = require('kexec');
