@@ -4,7 +4,7 @@
 var queries = (process.argv[2] || '').split('@');
 var filter = queries[0].toLowerCase();
 
-if (queries[1] & queries[1].length) {
+if (queries[1] && queries[1].length) {
   process.env.AWS_PROFILE = queries[1];
 }
 
@@ -107,7 +107,9 @@ ec2.describeInstances(opts, function (err, data) {
   // hand over to SSH
   var dns = instance.PublicDnsName;
   var user = 'ubuntu'; // TODO
-  var key = process.env.HOME + '/.ssh/titan'; // TODO
+
+  var keyName = process.env.KEY || instance.KeyName || 'aws';
+  var key = process.env.HOME + '/.ssh/' + keyName;
 
   // TODO: "killed: 9". is kexec even needed?
   //var kexec = require('kexec');
