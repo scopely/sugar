@@ -129,17 +129,28 @@ ec2.describeInstances(opts, function (err, data) {
     process.exit(3);
   }
 
-  // hand over to SSH
-  var dns = instance.PublicDnsName;
-  var user = 'ubuntu'; // TODO
-
+  // find the private key
   var keyName = process.env.KEY || instance.KeyName || 'aws';
   var key = process.env.HOME + '/.ssh/' + keyName;
+
+  if (!fs.existsSync(key)) {
+    key += '.pem';
+
+    if (!fs.existsSync(key)) {
+      console.error('Private key', keyName, "isn't in ~/.ssh/");
+      process.exit(5);
+    }
+  }
+
+  // hand off to SSH
+  var dns = instance.PublicDnsName;
+  var user = 'ubuntu'; // TODO
 
   // TODO: "killed: 9". is kexec even needed?
   //var kexec = require('kexec');
   //kexec('ssh', ['-i', key, [user, dns].join('@')]);
 
+  // hand off to SSH
   var spawn = require('child_process').spawn;
   spawn('ssh', ['-i', key, [user, dns].join('@')], {stdio: [0, 1, 2]});
 });
