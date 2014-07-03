@@ -40,6 +40,11 @@ if (process.env.AWS_ACCESS_KEY_ID && !profile) {
     var creds = config[profile || 'default'];
 
     if (!creds) {
+      var name = profile ? ('profile ' + profile) : 'profile';
+      creds = config[name];
+    }
+
+    if (!creds) {
       console.error('Profile', profile, "couldn't be found in", path);
       process.exit(4);
     }
