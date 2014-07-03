@@ -15,7 +15,7 @@ if (!filter.length) {
   console.info();
   console.info('Examples:');
   console.info('  sugar http');
-  console.info('  sugar postgre@prod');
+  console.info('  sugar postgres@prod');
   process.exit(1);
 }
 
