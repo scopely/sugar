@@ -3,7 +3,10 @@
 // argv parsing
 var queries = (process.argv[2] || '').split('@');
 var filter = queries[0].toLowerCase();
-var profile = queries[1]; // TODO: pay attention to profile
+
+if (queries[1] & queries[1].length) {
+  process.env.AWS_PROFILE = queries[1];
+}
 
 // help
 if (!filter.length) {
