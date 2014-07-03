@@ -83,8 +83,9 @@ ec2.describeInstances(opts, function (err, data) {
 
     return instance;
   }).filter(function (instance) {
-    // TODO: accept ami and instance IDs as well
-    return instance.Name && instance.Name.toLowerCase().indexOf(filter) >= 0;
+    if (instance.Name && instance.Name.toLowerCase().indexOf(filter) >= 0) return true;
+    if (instance.InstanceId == filter || instance.ImageId == filter) return true;
+    return false;
   });
 
   // handle multiple matches
