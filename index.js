@@ -1,7 +1,17 @@
 #!/usr/bin/env node
+var sshFlags = [];
 
 // argv parsing
-var queries = (process.argv[2] || '').split('@');
+var argv = JSON.parse(JSON.stringify(process.argv)).slice(2);
+if (argv[0] == '-f') {
+  argv.shift();
+  var port = +argv.shift();
+
+  sshFlags.push('-L');
+  sshFlags.push(port + ':localhost:' + port);
+}
+
+var queries = (argv[0] || '').split('@');
 var filter = queries[0].toLowerCase();
 var profile = queries[1];
 
@@ -12,10 +22,12 @@ if (!filter.length) {
   console.info('Usage:');
   console.info('  sugar <instance filter>');
   console.info('  sugar <instance filter>@<profile>');
+  console.info('  sugar -f <port to forward> <instance filter>');
   console.info();
   console.info('Examples:');
   console.info('  sugar http');
   console.info('  sugar postgres@prod');
+  console.info('  sugar -f 8000 webserv@prod');
   process.exit(1);
 }
 
@@ -143,11 +155,14 @@ ec2.describeInstances(opts, function (err, data) {
   }
 
   // prepare SSH arguments
-  var dns = instance.PublicDnsName;
+  sshFlags.push('-i');
+  sshFlags.push(key);
+
   var user = process.env.SSH_USER || 'ubuntu'; // TODO
-  var target = [user, dns].join('@');
+  var dns = instance.PublicDnsName;
+  sshFlags.push([user, dns].join('@'));
 
   // hand off to SSH
   var spawn = require('child_process').spawn;
-  spawn('ssh', ['-i', key, target], {stdio: [0, 1, 2]});
+  spawn('ssh', sshFlags, {stdio: [0, 1, 2]});
 });
