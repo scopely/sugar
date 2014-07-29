@@ -146,10 +146,6 @@ ec2.describeInstances(opts, function (err, data) {
   var dns = instance.PublicDnsName;
   var user = process.env.SSH_USER || 'ubuntu'; // TODO
 
-  // TODO: "killed: 9". is kexec even needed?
-  //var kexec = require('kexec');
-  //kexec('ssh', ['-i', key, [user, dns].join('@')]);
-
   // hand off to SSH
   var spawn = require('child_process').spawn;
   spawn('ssh', ['-i', key, [user, dns].join('@')], {stdio: [0, 1, 2]});
