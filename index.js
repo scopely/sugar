@@ -145,8 +145,9 @@ ec2.describeInstances(opts, function (err, data) {
   // prepare SSH arguments
   var dns = instance.PublicDnsName;
   var user = process.env.SSH_USER || 'ubuntu'; // TODO
+  var target = [user, dns].join('@');
 
   // hand off to SSH
   var spawn = require('child_process').spawn;
-  spawn('ssh', ['-i', key, [user, dns].join('@')], {stdio: [0, 1, 2]});
+  spawn('ssh', ['-i', key, target], {stdio: [0, 1, 2]});
 });
