@@ -142,7 +142,7 @@ ec2.describeInstances(opts, function (err, data) {
     }
   }
 
-  // hand off to SSH
+  // prepare SSH arguments
   var dns = instance.PublicDnsName;
   var user = process.env.SSH_USER || 'ubuntu'; // TODO
 
