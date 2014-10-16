@@ -9,6 +9,11 @@ if (argv[0] == '-f') {
 
   sshFlags.push('-L');
   sshFlags.push(port + ':localhost:' + port);
+} else if (argv.indexOf('--version') >= 0) {
+  var package = require('./package');
+  console.log(package.name, package.version);
+  console.log(package.homepage);
+  process.exit();
 }
 
 var queries = (argv[0] || '').split('@');
@@ -16,9 +21,13 @@ var filter = queries[0].toLowerCase();
 var profile = queries[1];
 
 // help
-if (!filter.length) {
-  console.error('No filter specified');
-  console.info();
+var helpWanted = argv.indexOf('--help') >= 0;
+if (!filter.length || helpWanted) {
+  if (!helpWanted) {
+    console.error('No filter specified');
+    console.info();
+  }
+
   console.info('Usage:');
   console.info('  sugar <instance filter>');
   console.info('  sugar <instance filter>@<profile>');
@@ -28,7 +37,8 @@ if (!filter.length) {
   console.info('  sugar http');
   console.info('  sugar postgres@prod');
   console.info('  sugar -f 8000 webserv@prod');
-  process.exit(1);
+
+  process.exit(helpWanted ? 0 : 1);
 }
 
 // resolve credentials and region
