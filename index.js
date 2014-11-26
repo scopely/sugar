@@ -146,8 +146,6 @@ ec2.describeInstances(opts, function (err, data) {
     });
     process.exit(forceList ? 2 : 0);
   }
-  
-  console.info('Connecting to', instance.InstanceId, flair);
 
   // find the private key
   var keyName = argv.key || process.env.SSH_KEY || instance.KeyName || 'aws';
@@ -177,7 +175,14 @@ ec2.describeInstances(opts, function (err, data) {
   var host = instance.PublicDnsName || instance.PublicIpAddress;
   sshFlags.push([user, host].join('@'));
 
+  // check if user just wants options for `ssh`
+  if (argv['ssh-opts']) {
+    console.log(sshFlags.join(' '));
+    process.exit();
+  }
+
   // hand off to SSH
+  console.info('Connecting to', instance.InstanceId, flair);
   var spawn = require('child_process').spawn;
   spawn('ssh', sshFlags, {stdio: [0, 1, 2]});
 });
