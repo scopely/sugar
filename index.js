@@ -112,6 +112,8 @@ ec2.describeInstances(opts, function (err, data) {
   }).filter(function (instance) {
     if (instance.Name && instance.Name.toLowerCase().indexOf(filter) >= 0) return true;
     if (instance.InstanceId == filter || instance.ImageId == filter) return true;
+    if (instance.PublicDnsName == filter || instance.PublicIpAddress == filter) return true;
+    if (instance.PrivateDnsName == filter || instance.PrivateIpAddress == filter) return true;
     return false;
   });
 
