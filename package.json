@@ -4,7 +4,7 @@
   "description": "AWS EC2 SSH tool for easy access to all of your instances with a simple shell command",
   "main": "index.js",
   "bin": {
-      "sugar": "index.js"
+    "sugar": "index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -28,6 +28,7 @@
   "homepage": "https://github.com/scopely/sugar",
   "dependencies": {
     "aws-sdk": "^2.0.4",
-    "ini": "^1.2.1"
+    "ini": "^1.2.1",
+    "minimist": "^1.1.0"
   }
 }
