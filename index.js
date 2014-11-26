@@ -109,40 +109,45 @@ ec2.describeInstances(opts, function (err, data) {
   });
 
   // handle multiple matches
-  var instance;
+  var instance, flair, forceList;
   if (instances.length > 1) {
     var baseName = instances[0].Name;
 
     // if they differ from each other, complain
     instances.forEach(function (instance) {
-      if (instance.Name != baseName) {
+      if (instance.Name != baseName && !forceList) {
         console.error(filter, 'matches multiple different instances.');
-        console.info('Matching instances:', instances.map(function (instance) {
-          return instance.Name;
-        }));
-        process.exit(2);
+        forceList = true;
       }
     });
 
     // pick a random instance
     var index = Math.floor(Math.random() * instances.length);
     instance = instances[index];
-
-    console.info('Connecting to', instance.InstanceId,
-                 '(one of', instances.length, baseName, 'instances)');
+    flair = ['(one of', instances.length, baseName, 'instances)'].join(' ');
 
   // just once instance? cool
   } else if (instances.length) {
     instance = instances[0];
-
-    console.info('Connecting to', instance.InstanceId,
-                 '(the only', instance.Name, 'instance)');
-
-  // complain if no matches
+    flair = ['(the only', instance.Name, 'instance)'].join(' ');
   } else {
     console.error('No instances match', filter);
     process.exit(3);
   }
+
+  // handle user output demands
+  if (argv.dns) { // print DNS and bail
+    console.log(instance.PublicDnsName || instance.PublicIpAddress);
+    process.exit();
+
+  } else if (argv.list || forceList) { // show a basic list
+    instances.forEach(function (instance) {
+      console.log([instance.InstanceId, instance.Name, instance.PublicDnsName || instance.PublicIpAddress].join('\t'));
+    });
+    process.exit(forceList ? 2 : 0);
+  }
+  
+  console.info('Connecting to', instance.InstanceId, flair);
 
   // find the private key
   var keyName = argv.key || process.env.SSH_KEY || instance.KeyName || 'aws';
