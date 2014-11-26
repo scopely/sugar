@@ -1,15 +1,7 @@
 #!/usr/bin/env node
-var sshFlags = [];
 
-// argv parsing
 var argv = require('minimist')(process.argv.slice(2));
-if (argv.f) {
-  var port = +argv.f;
-
-  sshFlags.push('-L');
-  sshFlags.push(port + ':localhost:' + port);
-
-} else if (argv.version) {
+if (argv.version) {
   var package = require('./package');
   console.log(package.name, package.version);
   console.log(package.homepage);
@@ -153,7 +145,7 @@ ec2.describeInstances(opts, function (err, data) {
   }
 
   // find the private key
-  var keyName = process.env.SSH_KEY || instance.KeyName || 'aws';
+  var keyName = argv.key || process.env.SSH_KEY || instance.KeyName || 'aws';
   var key = process.env.HOME + '/.ssh/' + keyName;
 
   if (!fs.existsSync(key)) {
@@ -166,10 +158,17 @@ ec2.describeInstances(opts, function (err, data) {
   }
 
   // prepare SSH arguments
+  var sshFlags = [];
   sshFlags.push('-i');
   sshFlags.push(key);
 
-  var user = process.env.SSH_USER || 'ubuntu'; // TODO
+  if (argv.f) {
+    var port = +argv.f;
+    sshFlags.push('-L');
+    sshFlags.push(port + ':localhost:' + port);
+  }
+
+  var user = argv.user || process.env.SSH_USER || 'ubuntu'; // TODO
   var host = instance.PublicDnsName || instance.PublicIpAddress;
   sshFlags.push([user, host].join('@'));
 
