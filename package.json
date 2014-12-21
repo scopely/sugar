@@ -1,6 +1,6 @@
 {
   "name": "sugar-ssh",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "AWS EC2 SSH tool for easy access to all of your instances with a simple shell command",
   "main": "index.js",
   "bin": {
