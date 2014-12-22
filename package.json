@@ -29,6 +29,7 @@
   "dependencies": {
     "aws-sdk": "^2.0.4",
     "ini": "^1.2.1",
-    "minimist": "^1.1.0"
+    "minimist": "^1.1.0",
+    "ssh-fingerprint": "0.0.1"
   }
 }

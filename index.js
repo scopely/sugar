@@ -130,10 +130,12 @@ ec2.describeInstances(opts, function (err, data) {
   } else if (instances.length) {
     instance = instances[0];
     flair = ['(the only', instance.Name, 'instance)'].join(' ');
+
   } else {
     console.error('No instances match', filter);
     process.exit(3);
   }
+  console.log('sugar: Decided on', instance.InstanceId);
 
   // handle user output demands
   if (argv.dns) { // print DNS and bail
@@ -147,6 +149,113 @@ ec2.describeInstances(opts, function (err, data) {
     process.exit(forceList ? 2 : 0);
   }
 
+  var sshInfo;
+  instance.Tags.forEach(function (keyval) {
+    if (keyval.Key == 'SshInfo')
+      sshInfo = JSON.parse(keyval.Value);
+  });
+
+  if (sshInfo) { // && sshInfo.prints && sshInfo.prints.ecdsa) {
+    connect(instance, sshInfo, flair);
+  } else {
+    console.log('sugar: Finding instance SSH info...');
+
+    var params = { InstanceId: instance.InstanceId };
+    ec2.getConsoleOutput(params, function (err, data) {
+      if (err) {
+        console.error('sugar: Error fetching EC2 console output:', err);
+        connect(instance, null, flair);
+      } else {
+        var output = new Buffer(data.Output, 'base64').toString();
+        sshInfo = { prints: {} };
+
+        if (output.indexOf('Amazon') > -1) {
+          sshInfo.username = 'ec2-user';
+        } else if (output.indexOf('Ubuntu') > -1) {
+          sshInfo.username = 'ubuntu';
+        } else if (output.indexOf('Microsoft Windows') > -1) {
+          sshInfo.username = 'Administrator';
+        } else {
+          console.warn('sugar: Unable to fingerprint instance type/username');
+        }
+
+        var regex = /Your public key has been saved in \/etc\/ssh\/ssh_host_([^_]+)_key\.pub\.\r\nThe key fingerprint is:\r\n([0-9a-f:]+) /g;
+        var match;
+        while ((match = regex.exec(output)) !== null) {
+          sshInfo.prints[match[1]] = match[2];
+        }
+
+        if (!Object.keys(sshInfo.prints).length) {
+          console.warn('sugar: No SSH host keys found in instance log.');
+          delete sshInfo.prints;
+        }
+
+        console.info('sugar: Storing SSH info', sshInfo);
+        ec2.createTags({
+          Resources: [instance.InstanceId],
+          Tags: [{
+            Key: 'SshInfo',
+            Value: JSON.stringify(sshInfo),
+          }],
+        }, function (err, data) {
+          if (err)
+            console.error('sugar ERR: createTags ->', err);
+        });
+
+        connect(instance, sshInfo, flair);
+      }
+    });
+  }
+});
+
+function verifyHostKey (host, prints, cb) {
+  var fs = require('fs');
+  var path = process.env.HOME + '/.ssh/known_hosts';
+
+  console.info('sugar: Reading known_hosts file');
+  var known = fs.readFileSync(path, 'utf-8');
+  if (known.indexOf(host[0]) > -1) {
+    console.info('sugar: Host key already added');
+    cb();
+
+  } else {
+    console.info('sugar: Getting host key for', host);
+
+    var execFile = require('child_process').execFile;
+    var fingerprint = require('ssh-fingerprint');
+
+    execFile('ssh-keyscan', [host[0]], function (err, sout, serr) {
+      if (err) {
+        console.warn('sugar: Error running ssh-keyscan:', err);
+        return cb();
+      }
+
+      var nl = known[known.length - 1] == '\n' ? '' : '\n';
+      var map = {
+        'ecdsa-sha2-nistp256': 'ecdsa',
+        'ssh-rsa': 'rsa',
+        'ssh-dsa': 'dsa',
+      };
+      sout.toString().split('\n').forEach(function (line) {
+        var parts = line.split(' ');
+        if (parts.length < 3) return;
+        var print = fingerprint(parts[2]);
+
+        if (print == prints[map[parts[1]]]) {
+          parts[0] = host.join(',');
+          fs.appendFileSync(path, nl + parts.join(' ') + '\n');
+          nl = '';
+        } else {
+          console.warn('sugar: !WARN! Host', parts[1], 'key has changed');
+        }
+      });
+
+      cb();
+    });
+  }
+}
+
+function connect (instance, sshInfo, flair) {
   // find the private key
   var keyName = argv.key || process.env.SSH_KEY || instance.KeyName || 'aws';
   var key = process.env.HOME + '/.ssh/' + keyName;
@@ -171,10 +280,20 @@ ec2.describeInstances(opts, function (err, data) {
     sshFlags.push(port + ':localhost:' + port);
   }
 
-  var user = argv.user || process.env.SSH_USER || 'ubuntu'; // TODO
+  var user = argv.user || process.env.SSH_USER || sshInfo.username || 'ubuntu';
   var host = instance.PublicDnsName || instance.PublicIpAddress;
   sshFlags.push([user, host].join('@'));
 
+  if (sshInfo && sshInfo.prints) {
+    verifyHostKey([host, instance.PublicIpAddress], sshInfo.prints, function () {
+      finalize(instance, flair, sshFlags);
+    });
+  } else {
+    finalize(instance, flair, sshFlags);
+  }
+}
+
+function finalize (instance, flair, sshFlags) {
   // check if user just wants options for `ssh`
   if (argv['ssh-opts']) {
     console.log(sshFlags.join(' '));
@@ -185,4 +304,4 @@ ec2.describeInstances(opts, function (err, data) {
   console.info('Connecting to', instance.InstanceId, flair);
   var spawn = require('child_process').spawn;
   spawn('ssh', sshFlags, {stdio: [0, 1, 2]});
-});
+}
