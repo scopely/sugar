@@ -179,7 +179,7 @@ ec2.describeInstances(opts, function (err, data) {
           console.warn('sugar: Unable to fingerprint instance type/username');
         }
 
-        var regex = /Your public key has been saved in \/etc\/ssh\/ssh_host_([^_]+)_key\.pub\.\r\nThe key fingerprint is:\r\n([0-9a-f:]+) /g;
+        var regex = /Your public key has been saved in \/etc\/ssh\/ssh_host_([^_]+)_key\.pub\.[\r\n]+The key fingerprint is:[\r\n]+([0-9a-f:]+) /g;
         var match;
         while ((match = regex.exec(output)) !== null) {
           sshInfo.prints[match[1]] = match[2];
