@@ -4,7 +4,7 @@
 * Node.JS of any recent vintage
 * SSH keys stored in ``~/.ssh/`` and named after the AWS keypairs
 * `~/.aws/config` file with credentials ([details](https://github.com/aws/aws-cli#getting-started))
-  * For a good experiance, include the region
+  * For a good experience, include the region
 
 ## Installation and Updating
 `npm install -g sugar-ssh`
