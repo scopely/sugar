@@ -8,6 +8,13 @@ if (argv.version) {
   process.exit();
 }
 
+function debug () {
+  if (argv.v) {
+    var args = Array.prototype.slice.call(arguments);
+    console.log.apply(console, ['sugar:'].concat(args));
+  }
+}
+
 var queries = (argv._[0] || '').split('@');
 var filter = queries[0].toLowerCase();
 var profile = queries[1];
@@ -135,7 +142,7 @@ ec2.describeInstances(opts, function (err, data) {
     console.error('No instances match', filter);
     process.exit(3);
   }
-  console.log('sugar: Decided on', instance.InstanceId);
+  debug('Decided on', instance.InstanceId);
 
   // handle user output demands
   if (argv.dns) { // print DNS and bail
@@ -158,7 +165,7 @@ ec2.describeInstances(opts, function (err, data) {
   if (sshInfo) { // && sshInfo.prints && sshInfo.prints.ecdsa) {
     connect(instance, sshInfo, flair);
   } else {
-    console.log('sugar: Finding instance SSH info...');
+    debug('Finding instance SSH info...');
 
     var params = { InstanceId: instance.InstanceId };
     ec2.getConsoleOutput(params, function (err, data) {
@@ -190,7 +197,7 @@ ec2.describeInstances(opts, function (err, data) {
           delete sshInfo.prints;
         }
 
-        console.info('sugar: Storing SSH info', sshInfo);
+        debug('sugar: Storing SSH info', sshInfo);
         ec2.createTags({
           Resources: [instance.InstanceId],
           Tags: [{
@@ -212,14 +219,14 @@ function verifyHostKey (host, prints, cb) {
   var fs = require('fs');
   var path = process.env.HOME + '/.ssh/known_hosts';
 
-  console.info('sugar: Reading known_hosts file');
+  debug('Reading known_hosts file');
   var known = fs.readFileSync(path, 'utf-8');
   if (known.indexOf(host[0]) > -1) {
-    console.info('sugar: Host key already added');
+    debug('Host key already added');
     cb();
 
   } else {
-    console.info('sugar: Getting host key for', host);
+    console.info('sugar: Getting host key from', host);
 
     var execFile = require('child_process').execFile;
     var fingerprint = require('ssh-fingerprint');
@@ -278,6 +285,10 @@ function connect (instance, sshInfo, flair) {
     var port = +argv.f;
     sshFlags.push('-L');
     sshFlags.push(port + ':localhost:' + port);
+  }
+
+  if (argv.v) {
+    sshFlags.push('-v');
   }
 
   var user = argv.user || process.env.SSH_USER || sshInfo.username || 'ubuntu';
