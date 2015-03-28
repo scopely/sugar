@@ -1,0 +1,12 @@
+{
+  "parser": "babel-eslint",
+  "rules": {
+    "strict": 0,
+    "quotes": 0,
+    "curly": 0,
+    "no-process-exit": 0
+  },
+  "env": {
+    "node": true
+  }
+}
