@@ -1,6 +1,6 @@
 {
   "name": "easy2",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "AWS EC2 SSH tool for easy access to all of your instances with a simple shell command",
   "bin": "bin/easy2",
   "scripts": {
@@ -27,7 +27,6 @@
     "aws-sdk": "^2.0.4",
     "babel": "^4.7.16",
     "ini": "^1.2.1",
-    "lodash": "^3.5.0",
     "nomnom": "^1.8.1",
     "ssh-fingerprint": "0.0.1"
   }
