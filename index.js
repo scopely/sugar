@@ -27,14 +27,29 @@ if (!filter.length || argv.help) {
   }
 
   console.info('Usage:');
-  console.info('  sugar <instance filter>');
-  console.info('  sugar <instance filter>@<profile>');
-  console.info('  sugar -f <port to forward> <instance filter>');
+  console.info('  sugar [flags] <instance filter>');
+  console.info('  sugar [flags] <instance filter>@<profile>');
+  console.info();
+  console.info('Instance filters:');
+  console.info('  The instance filter will try partial matching against EC2 instance names.');
+  console.info('  It will also look for exact matches against:');
+  console.info('  - Public or private IP or hostname');
+  console.info('  - Instance ID or AMI ID');
+  console.info();
+  console.info('Flags:');
+  console.info('  --help        Display help text and exit');
+  console.info('  --dns         Just prints the server\'s public DNS hostname');
+  console.info('  --list        Prints a list of all matching instances');
+  console.info('  -f port       Brings a remote port to your local machine via tunnel');
+  console.info('  --user name   Overrides SSH username (default: autodetected, or ubuntu)');
+  console.info('  --key keyname Forces using a certain key name. Key must exist in ~/.ssh/');
+  console.info('  --ssh-opts    Prints the argument list that would be passed to `ssh`');
   console.info();
   console.info('Examples:');
   console.info('  sugar http');
   console.info('  sugar postgres@prod');
   console.info('  sugar -f 8000 webserv@prod');
+  console.info('  scp -r dist/ `sugar webserv@prod --ssh-opts`:public_html/');
 
   process.exit(argv.help ? 0 : 1);
 }
