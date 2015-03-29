@@ -44,7 +44,6 @@ function addCommonSSHOpts(cmd) {
     })
     .option('user', {
       abbr: 'u',
-      default: 'ubuntu',
       help: "Log in as this user."
     })
     .option('opts', {
