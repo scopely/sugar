@@ -5,10 +5,19 @@ import AWS from "aws-sdk";
 import fingerprint from "ssh-fingerprint";
 import {execFile, spawn} from "child_process";
 
-let DEBUG = false;
-let opts = nomnom().script('easy2');
+const filterDocs = `Instance Filters:
+  The instance filter will try partial matching against EC2 instance names.');
+  It will also look for exact matches against:');
+  - Public or private IP or hostname');
+  - Instance ID or AMI ID');
+`;
 
-opts.command('dns')
+let DEBUG = false;
+let opts = nomnom()
+  .script('sugar')
+  .help(filterDocs);
+
+let dnsCmd = opts.command('dns')
   .callback(dns)
   .option('filter', {
     position: 1,
