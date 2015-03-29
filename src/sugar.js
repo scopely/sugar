@@ -196,6 +196,7 @@ function selectInstance(filter, instances) {
   }
 
   debug(`Decided on ${JSON.stringify(instance)}`);
+  instance.oneOf = instances.length;
   return instance;
 }
 
@@ -386,8 +387,15 @@ function connect(cmdOpts) {
       }
 
       function runSSH() {
+        let flair;
+        if (instance.oneOf > 1) {
+          flair = `(one of ${instance.oneOf} ${instance.Name} instances)`;
+        } else {
+          flair = `(the only ${instance.Name} instance)`;
+        }
+
         // hand off to SSH
-        console.info('Connecting to', instance.InstanceId);
+        console.info('Connecting to', instance.InstanceId, flair);
         spawn('ssh', sshOpts, {stdio: [0, 1, 2]});
       }
 
