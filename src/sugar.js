@@ -240,14 +240,14 @@ function buildSSHInfo(ec2, instance) {
   let sshInfo = instance.Tags.find(tag => tag.Name === 'SshInfo');
 
   if (sshInfo) {
-    return JSON.parse(sshInfo);
+    return {instance: instance, sshInfo: JSON.parse(sshInfo)};
   } else {
     debug('Finding instance SSH info...');
     return new Promise(resolve => {
       ec2.getConsoleOutput({InstanceId: instance.InstanceId}, (err, data) => {
         if (err) {
           console.error('sugar: Error fetching EC2 console output:', err);
-          resolve();
+          resolve({inst: instance});
         }
 
         let output = new Buffer(data.Output, 'base64').toString();
@@ -287,7 +287,7 @@ function buildSSHInfo(ec2, instance) {
             console.error('sugar ERR: createTags ->', err);
           }
 
-          resolve(instance, sshInfo);
+          resolve({instance: instance, sshInfo: sshInfo});
         });
       });
     });
@@ -309,6 +309,7 @@ function verifyHostKey(host, prints) {
 
   if (known.indexOf(host[0]) > -1) {
     debug('Host key already added');
+    return Promise.resolve();
   } else {
     console.info('sugar: Getting host key from', host);
     return new Promise(resolve => {
@@ -375,7 +376,7 @@ function connect(cmdOpts) {
     .then(instances => filterInstances(filter, instances))
     .then(instances => selectInstance(filter, instances))
     .then(instance => buildSSHInfo(ec2, instance))
-    .then((instance, sshInfo) => {
+    .then(({instance, sshInfo}) => {
       let key = getPrivateKey(cmdOpts, instance);
 
       let sshOpts = [];
@@ -412,6 +413,10 @@ function connect(cmdOpts) {
       } else {
         runSSH();
       }
+    })
+    .catch(err => {
+      console.error("An error occurred", err.stack);
+      process.exit(1);
     });
 }
 
