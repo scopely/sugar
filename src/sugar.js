@@ -5,11 +5,14 @@ import AWS from "aws-sdk";
 import fingerprint from "ssh-fingerprint";
 import {execFile, spawn} from "child_process";
 
-const filterDocs = `Instance Filters:
-  The instance filter will try partial matching against EC2 instance names.');
-  It will also look for exact matches against:');
-  - Public or private IP or hostname');
-  - Instance ID or AMI ID');
+const filterDocs = `If the first argument is not a command or option, we default
+to the ssh command.
+
+Instance Filters:
+  The instance filter will try partial matching against EC2 instance names.
+  It will also look for exact matches against:
+  - Public or private IP or hostname
+  - Instance ID or AMI ID
 `;
 
 let DEBUG = false;
@@ -22,7 +25,7 @@ opts.command('dns')
   .option('filter', {
     position: 1,
     required: true,
-    help: "Filter to match against – postgres@prod"
+    help: "Filter to match against – postgres@prod."
   })
   .help("Print DNS and bail.");
 
@@ -35,7 +38,7 @@ function addCommonSSHOpts(cmd) {
     .option('filter', {
       position: 1,
       required: true,
-      help: "Filter to match against – postgres@prod"
+      help: "Filter to match against – postgres@prod."
     })
     .option('verbose', {
       abbr: 'v',
@@ -420,4 +423,16 @@ function connect(cmdOpts) {
     });
 }
 
-opts.parse();
+let sugarArgs = process.argv.slice(2);
+
+let commandNames = Object.keys(opts.commands).some(arg => {
+  return sugarArgs.indexOf(arg) > -1;
+});
+
+let onlyHasOpts = sugarArgs.every(arg => arg.startsWith('-'));
+
+if (sugarArgs.length > 0 && !commandNames && !onlyHasOpts) {
+  sugarArgs.unshift('ssh');
+}
+
+opts.parse(sugarArgs);
