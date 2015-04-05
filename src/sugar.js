@@ -17,7 +17,7 @@ let opts = nomnom()
   .script('sugar')
   .help(filterDocs);
 
-let dnsCmd = opts.command('dns')
+opts.command('dns')
   .callback(dns)
   .option('filter', {
     position: 1,
