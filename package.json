@@ -31,5 +31,9 @@
     "ini": "^1.2.1",
     "nomnom": "^1.8.1",
     "ssh-fingerprint": "0.0.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^2.0.2",
+    "eslint": "^0.18.0"
   }
 }
