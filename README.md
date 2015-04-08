@@ -7,7 +7,7 @@
   * For a good experience, include the region
 
 ## Installation and Updating
-`npm install -g sugar`
+`npm install -g sugar-ssh`
 
 ## Usage
 * `sugar <instance filter>`
