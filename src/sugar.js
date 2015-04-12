@@ -1,9 +1,12 @@
+#!/usr/bin/env node
+
 import nomnom from "nomnom";
 import fs from "fs";
 import ini from "ini";
 import AWS from "aws-sdk";
 import fingerprint from "ssh-fingerprint";
 import {execFile, spawn} from "child_process";
+import "babel/polyfill";
 
 const filterDocs = `If the first argument is not a command or option, we default
 to the ssh command.
