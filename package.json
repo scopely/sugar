@@ -3,7 +3,7 @@
   "version": "0.4.0",
   "description": "AWS EC2 SSH tool for easy access to all of your instances with a simple shell command",
   "bin": {
-    "sugar": "bin/sugar"
+    "sugar": "lib/sugar.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -28,12 +28,15 @@
   "dependencies": {
     "aws-sdk": "^2.0.4",
     "babel": "^4.7.16",
+    "grunt-release": "^0.12.0",
     "ini": "^1.2.1",
     "nomnom": "^1.8.1",
     "ssh-fingerprint": "0.0.1"
   },
   "devDependencies": {
     "babel-eslint": "^2.0.2",
-    "eslint": "^0.18.0"
+    "eslint": "^0.18.0",
+    "grunt": "^0.4.5",
+    "grunt-babel": "^5.0.0"
   }
 }
