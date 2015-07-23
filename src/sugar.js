@@ -7,6 +7,7 @@ import AWS from "aws-sdk";
 import fingerprint from "ssh-fingerprint";
 import {execFile, spawn} from "child_process";
 import "babel/polyfill";
+import readline from "readline-sync";
 
 const filterDocs = `If the first argument is not a command or option, we default
 to the ssh command.
@@ -81,6 +82,11 @@ addCommonSSHOpts(
 
 addCommonSSHOpts(
   opts.command('ssh')
+    .option('interactive', {
+      abbr: 'n',
+      flag: true,
+      help: 'Prompt the user to select a specific instance'
+    })
     .callback(connect)
     .help("Connect to a matching instance via ssh.")
 );
@@ -178,16 +184,16 @@ function getInstances(ec2) {
 }
 
 function listInstances(instances) {
-  instances.forEach(function (instance) {
+  instances.forEach(function (instance, index) {
     console.log([
-      instance.InstanceId,
+      `${index}: ${instance.InstanceId}`,
       instance.Name,
       instance.PublicDnsName || instance.PublicIpAddress
     ].join('\t'));
   });
 }
 
-function selectInstance(filter, instances) {
+function selectInstance(args, filter, instances) {
   let instance;
 
   if (instances.length > 1) {
@@ -198,9 +204,20 @@ function selectInstance(filter, instances) {
       listInstances(instances);
     }
 
-    // pick a random instance
-    var index = Math.floor(Math.random() * instances.length);
-    instance = instances[index];
+    if (args.interactive) {
+      while (true) {
+        var sel = parseInt(readline.question('Select an instance: '));
+
+        if (sel >= 0 && sel < instances.length) {
+          instance = instances[sel];
+          break;
+        }
+      }
+    } else {
+      // pick a random instance
+      var index = Math.floor(Math.random() * instances.length);
+      instance = instances[index];
+    }
 
   } else if (instances.length) {
     instance = instances[0];
@@ -380,7 +397,7 @@ function connect(cmdOpts) {
 
   getInstances(ec2)
     .then(instances => filterInstances(filter, instances))
-    .then(instances => selectInstance(filter, instances))
+    .then(instances => selectInstance(cmdOpts, filter, instances))
     .then(instance => buildSSHInfo(ec2, instance))
     .then(({instance, sshInfo}) => {
       let key = getPrivateKey(cmdOpts, instance);
