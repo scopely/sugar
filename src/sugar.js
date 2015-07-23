@@ -183,10 +183,12 @@ function getInstances(ec2) {
   });
 }
 
-function listInstances(instances) {
+function listInstances(instances, printIndex) {
   instances.forEach(function (instance, index) {
+    let prefix = printIndex ? `${index + ': '}` : '';
+
     console.log([
-      `${index}: ${instance.InstanceId}`,
+      prefix + instance.InstanceId,
       instance.Name,
       instance.PublicDnsName || instance.PublicIpAddress
     ].join('\t'));
@@ -201,7 +203,7 @@ function selectInstance(args, filter, instances) {
 
     if (instances.some(instance => instance.Name !== baseName)) {
       console.error(filter, 'matches multiple different instances.');
-      listInstances(instances);
+      listInstances(instances, args.interactive);
     }
 
     if (args.interactive) {
