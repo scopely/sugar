@@ -85,7 +85,7 @@ addCommonSSHOpts(
     .option('interactive', {
       abbr: 'n',
       flag: true,
-      help: 'Prompt the user to select a specific instance'
+      help: 'Prompt to select a specific instance if more than one matches.'
     })
     .callback(connect)
     .help("Connect to a matching instance via ssh.")
