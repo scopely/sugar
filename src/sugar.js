@@ -185,7 +185,7 @@ function getInstances(ec2) {
 
 function listInstances(instances, printIndex) {
   instances.forEach(function (instance, index) {
-    let prefix = printIndex ? `${index + ': '}` : '';
+    let prefix = printIndex ? `${index}: ` : '';
 
     console.log([
       prefix + instance.InstanceId,
