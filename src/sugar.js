@@ -404,7 +404,7 @@ function connect(cmdOpts) {
       function runSSH() {
         let flair;
         if (instance.oneOf > 1) {
-          flair = `(one of ${instance.oneOf} ${instance.Name} instances)`;
+          flair = `(one of ${instance.oneOf} instances matching "${filter}")`;
         } else {
           flair = `(the only ${instance.Name} instance)`;
         }
